@@ -1,3 +1,4 @@
+import torch
 from dotenv import load_dotenv
 from langchain.chains import RetrievalQA
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -14,7 +15,7 @@ persist_directory = os.environ.get('PERSIST_DIRECTORY')
 
 model_type = os.environ.get('MODEL_TYPE')
 model_path = os.environ.get('MODEL_PATH')
-model_n_ctx = os.environ.get('MODEL_N_CTX')
+model_n_ctx = int(os.environ.get('MODEL_N_CTX'))  # Convert to integer
 
 from constants import CHROMA_SETTINGS
 
@@ -44,7 +45,9 @@ def initialize_qa():
 
     qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever, return_source_documents=True)
 
-def chatbot(query):
+initialize_qa()
+
+def chat(query):
     answer, docs = get_answer(qa, query)
     response = f"Question: {query}\n\nAnswer: {answer}\n\n"
 
@@ -53,7 +56,7 @@ def chatbot(query):
 
     return response.strip()
 
-initialize_qa()
+iface = gr.Interface(fn=chat, inputs="text", outputs="text", title="RoyGPT", layout="vertical",
+                     description="Chat with RoyGPT, an AI-powered language model.")
 
-iface = gr.Interface(fn=chatbot, inputs="text", outputs="text", title="Chatbot")
 iface.launch()
